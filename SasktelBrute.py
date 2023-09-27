@@ -33,7 +33,7 @@ def attack(user, password):
         'ADRUM': 'isAjax:true',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-origin'  # Corrected typo
+        'Sec-Fetch-Site': 'same-origin' 
     }
 
     data = {

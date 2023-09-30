@@ -64,8 +64,8 @@ def attack(user, password, user_agent):
         'Sec-Fetch-Site': 'same-origin'
     }
 
-    print(f"{Fore.YELLOW}User-Agent:{Fore.RESET} {user_agent}")
-    print(f"{Fore.YELLOW}Cookie:{Fore.RESET} {cookie_value}")
+    print(f"{Fore.YELLOW}USER-AGENT:{Fore.RESET} {user_agent}")
+    print(f"{Fore.YELLOW}COOKIE:{Fore.RESET} {cookie_value}")
 
     data = {
         "SnapInfo": {

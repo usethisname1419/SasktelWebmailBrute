@@ -84,7 +84,7 @@ def attack(user, password, user_agent):
         if response.status_code == 400:
             print(f"{Fore.YELLOW}RESPONSE:{Fore.RESET}{Fore.RED} {response.text}")
         elif response.status_code == 200:
-            print(f"{Fore.YELLOW}RESPONSE:{Fore.RESET}{Fore.GREEM} {response.text}")
+            print(f"{Fore.YELLOW}RESPONSE:{Fore.RESET}{Fore.GREEN} {response.text}")
             if "PASSWORD FOUND" in response.text:
                 print(f"{current_timestamp()} PASSWORD FOUND: {Fore.BLUE}{password}")
                 return True

